@@ -1,5 +1,7 @@
 # AI Tech Institute Certificate Generator
 
+Deployed on Vercel - Production Ready
+
 A professional certificate generation platform that allows you to create, email, and share certificates with LinkedIn integration.
 
 ## Features
