@@ -1,0 +1,32 @@
+{
+  "name": "ai-tech-certificate-generator",
+  "version": "1.0.0",
+  "description": "Certificate generation platform for AI Tech Institute with LinkedIn sharing",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.83",
+    "@types/node": "^20.10.6",
+    "@types/nodemailer": "^6.4.14",
+    "@types/react": "^18.2.46",
+    "@types/react-dom": "^18.2.18",
+    "@types/uuid": "^9.0.7",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "next": "^14.0.4",
+    "nodemailer": "^6.9.7",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "typescript": "^5.3.3",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.0.4"
+  }
+}
