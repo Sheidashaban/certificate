@@ -2,11 +2,27 @@ import fs from 'fs';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
-const dbPath = process.env.DATABASE_PATH || path.join(process.cwd(), 'certificates.json');
+// Use /tmp for serverless environments (Vercel, etc.)
+const isServerless = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+const dbPath = isServerless 
+  ? '/tmp/certificates.json'
+  : (process.env.DATABASE_PATH || path.join(process.cwd(), 'certificates.json'));
 
 // Initialize database file if it doesn't exist
-if (!fs.existsSync(dbPath)) {
-  fs.writeFileSync(dbPath, JSON.stringify([], null, 2));
+try {
+  if (!fs.existsSync(dbPath)) {
+    // Ensure /tmp directory exists in serverless
+    if (isServerless) {
+      const tmpDir = '/tmp';
+      if (!fs.existsSync(tmpDir)) {
+        fs.mkdirSync(tmpDir, { recursive: true });
+      }
+    }
+    fs.writeFileSync(dbPath, JSON.stringify([], null, 2));
+  }
+} catch (error) {
+  console.error('Database initialization error:', error);
+  // Continue anyway - will create on first write
 }
 
 function readDatabase(): Certificate[] {
