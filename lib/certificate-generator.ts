@@ -1,4 +1,4 @@
-import { createCanvas } from '@napi-rs/canvas';
+import { createCanvas, SKRSContext2D } from '@napi-rs/canvas';
 import path from 'path';
 import fs from 'fs';
 
@@ -128,7 +128,7 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
 }
 
 function drawCornerDecoration(
-  ctx: CanvasRenderingContext2D,
+  ctx: SKRSContext2D,
   x: number,
   y: number,
   size: number,
@@ -157,7 +157,7 @@ function drawCornerDecoration(
 }
 
 function drawSeal(
-  ctx: CanvasRenderingContext2D,
+  ctx: SKRSContext2D,
   x: number,
   y: number,
   radius: number,
@@ -249,7 +249,7 @@ function drawSeal(
   ctx.restore();
 }
 
-function drawStar(ctx: CanvasRenderingContext2D, x: number, y: number, size: number) {
+function drawStar(ctx: SKRSContext2D, x: number, y: number, size: number) {
   ctx.save();
   ctx.translate(x, y);
   ctx.beginPath();
