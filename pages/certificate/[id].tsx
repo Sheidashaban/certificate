@@ -59,7 +59,8 @@ export default function CertificatePage() {
     );
   }
 
-  const certificateUrl = id ? `/api/certificates/${id}` : '';
+  const certificateImageUrl = id ? `/api/certificates/${id}` : '';
+  const certificatePageUrl = id ? `${typeof window !== 'undefined' ? window.location.origin : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/certificate/${id}` : '';
 
   return (
     <>
