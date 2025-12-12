@@ -12,18 +12,25 @@ export default async function handler(
   try {
     const { accessToken, certificateUrl, text } = req.body;
 
+    console.log('🔄 LinkedIn share request received');
+    console.log('📋 Certificate URL:', certificateUrl);
+    console.log('📝 Text length:', text?.length || 0);
+
     if (!accessToken || !certificateUrl) {
       return res.status(400).json({ error: 'Access token and certificate URL are required' });
     }
 
     // Get user profile to verify token
+    console.log('🔐 Verifying LinkedIn token...');
     const profileResponse = await axios.get('https://api.linkedin.com/v2/userinfo', {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
     });
+    console.log('✅ Token verified, user ID:', profileResponse.data.sub);
 
     // Share on LinkedIn using UGC Posts API
+    console.log('📤 Posting to LinkedIn...');
     const shareResponse = await axios.post(
       'https://api.linkedin.com/v2/ugcPosts',
       {
@@ -62,16 +69,39 @@ export default async function handler(
       }
     );
 
+    console.log('✅ LinkedIn post successful!');
+    console.log('📝 Post ID:', shareResponse.data.id);
+    console.log('📋 Response:', JSON.stringify(shareResponse.data, null, 2));
+
     return res.status(200).json({
       success: true,
       postId: shareResponse.data.id,
       message: 'Certificate shared successfully on LinkedIn!',
     });
   } catch (error: any) {
-    console.error('LinkedIn share error:', error.response?.data || error.message);
-    return res.status(500).json({
-      error: 'Failed to share on LinkedIn',
-      details: error.response?.data || error.message,
+    console.error('❌ LinkedIn share error:', error);
+    console.error('Error response:', error.response?.data);
+    console.error('Error status:', error.response?.status);
+    console.error('Error message:', error.message);
+    
+    // Provide more helpful error messages
+    let errorMessage = 'Failed to share on LinkedIn';
+    let errorDetails = error.response?.data || error.message;
+
+    if (error.response?.status === 401) {
+      errorMessage = 'LinkedIn authentication failed. Please try authorizing again.';
+    } else if (error.response?.status === 403) {
+      errorMessage = 'LinkedIn API access denied. Your app may need approval for posting permissions.';
+    } else if (error.response?.status === 400) {
+      errorMessage = 'Invalid request to LinkedIn API. Please check your certificate URL.';
+    } else if (error.response?.data?.message) {
+      errorMessage = error.response.data.message;
+    }
+
+    return res.status(error.response?.status || 500).json({
+      error: errorMessage,
+      details: errorDetails,
+      statusCode: error.response?.status || 500,
     });
   }
 }

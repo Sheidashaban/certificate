@@ -19,6 +19,11 @@ export default async function handler(
       return res.status(400).json({ error: 'All fields are required' });
     }
 
+    console.log('🔄 Starting certificate generation...');
+    console.log('📋 Student:', studentName);
+    console.log('📚 Course:', courseName);
+    console.log('📧 Email:', studentEmail);
+
     // Generate certificate image
     const certificateBuffer = await generateCertificate({
       studentName,
@@ -26,6 +31,7 @@ export default async function handler(
       instructorName,
       year: parseInt(year),
     });
+    console.log('✅ Certificate image generated, size:', certificateBuffer.length, 'bytes');
 
     // Save to database
     const certificate = createCertificate({
@@ -36,10 +42,13 @@ export default async function handler(
       student_email: studentEmail,
       certificate_url: '', // Will be set by createCertificate
     });
+    console.log('✅ Certificate saved to database, ID:', certificate.id);
+    console.log('🔗 Certificate URL:', certificate.certificate_url);
 
     // Send email with certificate
     let emailError: any = null;
     try {
+      console.log('📧 Sending email to:', studentEmail);
       await sendCertificateEmail(
         studentEmail,
         studentName,
@@ -47,9 +56,10 @@ export default async function handler(
         certificate.certificate_url,
         certificateBuffer
       );
+      console.log('✅ Email sent successfully');
     } catch (err: any) {
       emailError = err;
-      console.error('Email sending failed:', err);
+      console.error('❌ Email sending failed:', err);
       // Continue even if email fails - certificate is still created
     }
 
