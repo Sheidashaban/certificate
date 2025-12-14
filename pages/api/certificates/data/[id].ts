@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getCertificate } from '@/lib/database';
 
-export default function handler(
+export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
@@ -18,26 +18,10 @@ export default function handler(
     }
 
     console.log('🔍 Looking for certificate data with ID:', id);
-    const certificate = getCertificate(id);
+    const certificate = await getCertificate(id);
 
     if (!certificate) {
       console.error('❌ Certificate not found for ID:', id);
-      // Log database state for debugging
-      const dbPath = process.env.VERCEL ? '/tmp/certificates.json' : (process.env.DATABASE_PATH || './certificates.json');
-      console.error('📁 Database path:', dbPath);
-      try {
-        const fs = require('fs');
-        if (fs.existsSync(dbPath)) {
-          const data = fs.readFileSync(dbPath, 'utf-8');
-          const certificates = JSON.parse(data);
-          console.error('📊 Total certificates in database:', certificates.length);
-          console.error('📋 Certificate IDs:', certificates.map((c: any) => c.id));
-        } else {
-          console.error('❌ Database file does not exist');
-        }
-      } catch (e) {
-        console.error('❌ Error reading database:', e);
-      }
       return res.status(404).json({ error: 'Certificate not found' });
     }
 

@@ -34,7 +34,7 @@ export default async function handler(
     console.log('✅ Certificate image generated, size:', certificateBuffer.length, 'bytes');
 
     // Save to database
-    const certificate = createCertificate({
+    const certificate = await createCertificate({
       student_name: studentName,
       course_name: courseName,
       instructor_name: instructorName,
