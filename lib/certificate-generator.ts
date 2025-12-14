@@ -123,7 +123,8 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
     ctx.fillText(studentNameText, width / 2, 330);
     console.log('✅ Drew student name:', studentNameText);
   } catch (e) {
-    console.error('❌ Error drawing student name:', e, e.message);
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error('❌ Error drawing student name:', errorMessage);
   }
 
   // Course section
@@ -146,7 +147,8 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
     ctx.fillText(courseNameText, width / 2, 450);
     console.log('✅ Drew course name:', courseNameText);
   } catch (e) {
-    console.error('❌ Error drawing course name:', e, e.message);
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error('❌ Error drawing course name:', errorMessage);
   }
 
   // Year
@@ -159,7 +161,8 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
     ctx.fillText(yearText, width / 2, 510);
     console.log('✅ Drew year:', yearText);
   } catch (e) {
-    console.error('❌ Error drawing year:', e, e.message);
+    const errorMessage = e instanceof Error ? e.message : String(e);
+    console.error('❌ Error drawing year:', errorMessage);
   }
 
   // AI Tech Institute Logo Area (top center)
