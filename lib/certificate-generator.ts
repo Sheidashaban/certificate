@@ -10,10 +10,19 @@ export interface CertificateData {
 }
 
 export async function generateCertificate(data: CertificateData): Promise<Buffer> {
+  console.log('🎨 Starting certificate generation with data:', {
+    studentName: data.studentName,
+    courseName: data.courseName,
+    instructorName: data.instructorName,
+    year: data.year,
+  });
+  
   const width = 1200;
   const height = 800;
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d');
+  
+  console.log('✅ Canvas created, size:', width, 'x', height);
 
   // Background - white with subtle pattern
   ctx.fillStyle = '#FFFFFF';
@@ -58,36 +67,70 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
 
   // Main Title
   ctx.fillStyle = '#2C3E50';
-  ctx.font = 'bold 56px "Times New Roman", serif';
+  ctx.font = 'bold 56px serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('CERTIFICATE', width / 2, 150);
+  try {
+    ctx.fillText('CERTIFICATE', width / 2, 150);
+  } catch (e) {
+    console.error('Error drawing CERTIFICATE:', e);
+  }
   
-  ctx.font = 'bold 48px "Times New Roman", serif';
-  ctx.fillText('OF COMPLETION', width / 2, 210);
+  ctx.font = 'bold 48px serif';
+  try {
+    ctx.fillText('OF COMPLETION', width / 2, 210);
+  } catch (e) {
+    console.error('Error drawing OF COMPLETION:', e);
+  }
 
   // Student name section
   ctx.fillStyle = '#34495E';
-  ctx.font = 'normal 24px Arial, sans-serif';
-  ctx.fillText('COMPLETED THE', width / 2, 280);
+  ctx.font = 'normal 24px sans-serif';
+  try {
+    ctx.fillText('COMPLETED THE', width / 2, 280);
+  } catch (e) {
+    console.error('Error drawing COMPLETED THE:', e);
+  }
 
   ctx.fillStyle = '#2C3E50';
-  ctx.font = 'bold 42px "Times New Roman", serif';
-  ctx.fillText(data.studentName.toUpperCase(), width / 2, 330);
+  ctx.font = 'bold 42px serif';
+  const studentNameText = data.studentName ? data.studentName.toUpperCase() : 'STUDENT NAME';
+  console.log('🎨 Drawing student name:', studentNameText);
+  try {
+    ctx.fillText(studentNameText, width / 2, 330);
+  } catch (e) {
+    console.error('Error drawing student name:', e);
+  }
 
   // Course section
   ctx.fillStyle = '#34495E';
-  ctx.font = 'normal 24px Arial, sans-serif';
-  ctx.fillText('ATTENDED THE', width / 2, 390);
+  ctx.font = 'normal 24px sans-serif';
+  try {
+    ctx.fillText('ATTENDED THE', width / 2, 390);
+  } catch (e) {
+    console.error('Error drawing ATTENDED THE:', e);
+  }
 
   ctx.fillStyle = '#2C3E50';
-  ctx.font = 'bold 36px "Times New Roman", serif';
-  ctx.fillText(data.courseName.toUpperCase(), width / 2, 440);
+  ctx.font = 'bold 36px serif';
+  const courseNameText = data.courseName ? data.courseName.toUpperCase() : 'COURSE NAME';
+  console.log('🎨 Drawing course name:', courseNameText);
+  try {
+    ctx.fillText(courseNameText, width / 2, 440);
+  } catch (e) {
+    console.error('Error drawing course name:', e);
+  }
 
   // Year
   ctx.fillStyle = '#7F8C8D';
-  ctx.font = 'normal 20px Arial, sans-serif';
-  ctx.fillText(`Year: ${data.year}`, width / 2, 490);
+  ctx.font = 'normal 20px sans-serif';
+  const yearText = `Year: ${data.year}`;
+  console.log('🎨 Drawing year:', yearText);
+  try {
+    ctx.fillText(yearText, width / 2, 490);
+  } catch (e) {
+    console.error('Error drawing year:', e);
+  }
 
   // Decorative seal on top-left
   drawSeal(ctx, 150, 120, 80, 'CERTIFY', 'THE COMPLETION');
