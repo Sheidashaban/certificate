@@ -62,23 +62,31 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   drawCornerDecoration(ctx, width - 80, height - 80, cornerSize, 'bottom-right');
 
   // Main Title - AI Tech Institute Style
+  // Set text properties BEFORE drawing
   ctx.fillStyle = BLACK;
-  ctx.font = 'bold 64px sans-serif';
+  ctx.strokeStyle = BLACK;
   ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
+  ctx.textBaseline = 'alphabetic'; // Changed from 'top' to 'alphabetic'
   
   const titleY = 120;
+  
+  // Draw CERTIFICATE with stroke for visibility
+  ctx.font = 'bold 64px sans-serif';
+  ctx.lineWidth = 2;
   try {
+    // Draw with both fill and stroke to ensure visibility
+    ctx.strokeText('CERTIFICATE', width / 2, titleY);
     ctx.fillText('CERTIFICATE', width / 2, titleY);
-    console.log('✅ Drew CERTIFICATE text');
+    console.log('✅ Drew CERTIFICATE text at', width / 2, titleY);
   } catch (e) {
     console.error('❌ Error drawing CERTIFICATE:', e);
   }
   
   ctx.font = 'bold 52px sans-serif';
   try {
+    ctx.strokeText('OF COMPLETION', width / 2, titleY + 70);
     ctx.fillText('OF COMPLETION', width / 2, titleY + 70);
-    console.log('✅ Drew OF COMPLETION text');
+    console.log('✅ Drew OF COMPLETION text at', width / 2, titleY + 70);
   } catch (e) {
     console.error('❌ Error drawing OF COMPLETION:', e);
   }
@@ -93,55 +101,65 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
 
   // Student name section
   ctx.fillStyle = BLACK;
+  ctx.strokeStyle = BLACK;
+  ctx.textBaseline = 'alphabetic';
+  
   ctx.font = 'normal 28px sans-serif';
-  ctx.textBaseline = 'top';
+  ctx.lineWidth = 1;
   try {
+    ctx.strokeText('THIS IS TO CERTIFY THAT', width / 2, 280);
     ctx.fillText('THIS IS TO CERTIFY THAT', width / 2, 280);
-    console.log('✅ Drew THIS IS TO CERTIFY THAT');
+    console.log('✅ Drew THIS IS TO CERTIFY THAT at', width / 2, 280);
   } catch (e) {
     console.error('❌ Error drawing THIS IS TO CERTIFY THAT:', e);
   }
 
   ctx.font = 'bold 48px sans-serif';
+  ctx.lineWidth = 2;
   const studentNameText = data.studentName ? data.studentName.toUpperCase() : 'STUDENT NAME';
-  console.log('🎨 Drawing student name:', studentNameText);
+  console.log('🎨 Drawing student name:', studentNameText, 'at', width / 2, 330);
   try {
+    ctx.strokeText(studentNameText, width / 2, 330);
     ctx.fillText(studentNameText, width / 2, 330);
     console.log('✅ Drew student name:', studentNameText);
   } catch (e) {
-    console.error('❌ Error drawing student name:', e);
+    console.error('❌ Error drawing student name:', e, e.message);
   }
 
   // Course section
-  ctx.fillStyle = BLACK;
   ctx.font = 'normal 28px sans-serif';
+  ctx.lineWidth = 1;
   try {
+    ctx.strokeText('HAS SUCCESSFULLY COMPLETED', width / 2, 400);
     ctx.fillText('HAS SUCCESSFULLY COMPLETED', width / 2, 400);
-    console.log('✅ Drew HAS SUCCESSFULLY COMPLETED');
+    console.log('✅ Drew HAS SUCCESSFULLY COMPLETED at', width / 2, 400);
   } catch (e) {
     console.error('❌ Error drawing HAS SUCCESSFULLY COMPLETED:', e);
   }
 
   ctx.font = 'bold 40px sans-serif';
+  ctx.lineWidth = 2;
   const courseNameText = data.courseName ? data.courseName.toUpperCase() : 'COURSE NAME';
-  console.log('🎨 Drawing course name:', courseNameText);
+  console.log('🎨 Drawing course name:', courseNameText, 'at', width / 2, 450);
   try {
+    ctx.strokeText(courseNameText, width / 2, 450);
     ctx.fillText(courseNameText, width / 2, 450);
     console.log('✅ Drew course name:', courseNameText);
   } catch (e) {
-    console.error('❌ Error drawing course name:', e);
+    console.error('❌ Error drawing course name:', e, e.message);
   }
 
   // Year
-  ctx.fillStyle = BLACK;
   ctx.font = 'normal 24px sans-serif';
+  ctx.lineWidth = 1;
   const yearText = `Year: ${data.year}`;
-  console.log('🎨 Drawing year:', yearText);
+  console.log('🎨 Drawing year:', yearText, 'at', width / 2, 510);
   try {
+    ctx.strokeText(yearText, width / 2, 510);
     ctx.fillText(yearText, width / 2, 510);
     console.log('✅ Drew year:', yearText);
   } catch (e) {
-    console.error('❌ Error drawing year:', e);
+    console.error('❌ Error drawing year:', e, e.message);
   }
 
   // AI Tech Institute Logo Area (top center)
