@@ -1,4 +1,4 @@
-import { createCanvas, GlobalFonts } from '@napi-rs/canvas';
+import { Canvas, FontLibrary } from 'skia-canvas';
 
 export interface CertificateData {
   studentName: string;
@@ -7,40 +7,9 @@ export interface CertificateData {
   year: number;
 }
 
-// Get available font - use first available or fallback
-function getAvailableFont(): string {
-  const availableFonts = GlobalFonts.families;
-  console.log('🔤 Available fonts:', availableFonts.slice(0, 20));
-  
-  // Try common fonts in order of preference
-  const preferredFonts = ['Arial', 'DejaVu Sans', 'Liberation Sans', 'Helvetica', 'Verdana'];
-  
-  for (const font of preferredFonts) {
-    if (availableFonts.includes(font)) {
-      console.log('✅ Using font:', font);
-      return font;
-    }
-  }
-  
-  // Use first available font
-  if (availableFonts.length > 0) {
-    const firstFont = availableFonts[0];
-    console.log('✅ Using first available font:', firstFont);
-    return firstFont;
-  }
-  
-  // Last resort - return empty string (will use default)
-  console.warn('⚠️ No fonts available, using default');
-  return '';
-}
-
 export async function generateCertificate(data: CertificateData): Promise<Buffer> {
-  console.log('🎨 Starting certificate generation');
+  console.log('🎨 Starting certificate generation with skia-canvas');
   console.log('📋 Data received:', JSON.stringify(data, null, 2));
-  
-  // Get available font
-  const fontName = getAvailableFont();
-  const baseFont = fontName ? `${fontName}` : '';
   
   // Validate data
   if (!data || !data.studentName || !data.courseName) {
@@ -50,11 +19,10 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   
   const width = 1200;
   const height = 800;
-  const canvas = createCanvas(width, height);
+  const canvas = new Canvas(width, height);
   const ctx = canvas.getContext('2d');
   
   console.log('✅ Canvas created:', width, 'x', height);
-  console.log('🔤 Using font base:', baseFont);
 
   // WHITE BACKGROUND
   ctx.fillStyle = '#FFFFFF';
@@ -99,12 +67,12 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   
   // Badge text
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = baseFont ? `bold 16px ${baseFont}` : 'bold 16px';
+  ctx.font = 'bold 16px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   try {
     ctx.fillText('AI TECH', badgeX, badgeY - 10);
-    ctx.font = baseFont ? `bold 14px ${baseFont}` : 'bold 14px';
+    ctx.font = 'bold 14px sans-serif';
     ctx.fillText('INSTITUTE', badgeX, badgeY + 10);
     console.log('✅ Badge text drawn');
   } catch (e: any) {
@@ -115,13 +83,13 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   const logoX = width - 250;
   const logoY = 80;
   ctx.fillStyle = '#000000';
-  ctx.font = baseFont ? `bold 36px ${baseFont}` : 'bold 36px';
+  ctx.font = 'bold 36px sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   try {
     ctx.fillText('AI TECH', logoX, logoY);
     ctx.fillStyle = '#666666';
-    ctx.font = baseFont ? `20px ${baseFont}` : '20px';
+    ctx.font = '20px sans-serif';
     ctx.fillText('INSTITUTE', logoX, logoY + 45);
     console.log('✅ Logo text drawn');
   } catch (e: any) {
@@ -130,7 +98,7 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
 
   // Center - CERTIFICATE Title
   ctx.fillStyle = '#000000';
-  ctx.font = baseFont ? `bold 80px ${baseFont}` : 'bold 80px';
+  ctx.font = 'bold 80px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
   const titleX = width / 2;
@@ -151,8 +119,7 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
     name: studentName,
     length: studentName.length,
     x: studentNameX,
-    y: studentNameY,
-    font: baseFont ? `bold 60px ${baseFont}` : 'bold 60px'
+    y: studentNameY
   });
   
   if (!studentName) {
@@ -162,20 +129,17 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   }
   
   ctx.fillStyle = '#0066CC';
-  ctx.font = baseFont ? `bold 60px ${baseFont}` : 'bold 60px';
+  ctx.font = 'bold 60px sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   
   try {
-    // Draw multiple times to ensure visibility
     ctx.fillText(studentName, studentNameX, studentNameY);
-    ctx.fillText(studentName, studentNameX + 1, studentNameY + 1);
-    ctx.fillText(studentName, studentNameX - 1, studentNameY - 1);
     console.log('✅✅✅ Student name SUCCESSFULLY drawn:', studentName);
   } catch (e: any) {
     console.error('❌❌❌ CRITICAL ERROR drawing student name:', e?.message || e);
     console.error('❌ Error stack:', e?.stack);
-    // Try with black as fallback
+    // Fallback
     try {
       ctx.fillStyle = '#000000';
       ctx.fillText(studentName || 'STUDENT NAME', studentNameX, studentNameY);
@@ -189,7 +153,7 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   const descX = studentNameX;
   const descY = 380;
   ctx.fillStyle = '#666666';
-  ctx.font = baseFont ? `20px ${baseFont}` : '20px';
+  ctx.font = '20px sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   const description = 'Has been formally evaluated for experience, knowledge, and demonstrated competency at the technical level in Artificial Intelligence as per the industry prerequisites established by AI Tech Institute, and is hereby bestowed the international credential.';
@@ -231,13 +195,12 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   });
   
   ctx.fillStyle = '#0066CC';
-  ctx.font = baseFont ? `bold 36px ${baseFont}` : 'bold 36px';
+  ctx.font = 'bold 36px sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   
   try {
     ctx.fillText(courseName, studentNameX, courseY);
-    ctx.fillText(courseName, studentNameX + 1, courseY + 1);
     console.log('✅✅✅ Course name SUCCESSFULLY drawn:', courseName);
   } catch (e: any) {
     console.error('❌❌❌ CRITICAL ERROR drawing course name:', e?.message || e);
@@ -250,7 +213,7 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
 
   // Certificate Details
   ctx.fillStyle = '#666666';
-  ctx.font = baseFont ? `16px ${baseFont}` : '16px';
+  ctx.font = '16px sans-serif';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   const detailsX = 100;
@@ -277,13 +240,13 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   ctx.stroke();
 
   ctx.fillStyle = '#666666';
-  ctx.font = baseFont ? `20px ${baseFont}` : '20px';
+  ctx.font = '20px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
   
   try {
     ctx.fillText('Dr Amir Charkhi', signatureX, bottomY);
-    ctx.font = baseFont ? `18px ${baseFont}` : '18px';
+    ctx.font = '18px sans-serif';
     ctx.fillText('Executive Director', signatureX, bottomY + 45);
     console.log('✅ Signature drawn');
   } catch (e: any) {
@@ -308,25 +271,24 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   ctx.fill();
 
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = baseFont ? `bold 18px ${baseFont}` : 'bold 18px';
+  ctx.font = 'bold 18px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   
   try {
     ctx.fillText('AI TECH', shieldX + shieldWidth / 2, shieldY + shieldHeight * 0.4);
-    ctx.font = baseFont ? `bold 14px ${baseFont}` : 'bold 14px';
+    ctx.font = 'bold 14px sans-serif';
     ctx.fillText('INSTITUTE', shieldX + shieldWidth / 2, shieldY + shieldHeight * 0.65);
     console.log('✅ Shield badge drawn');
   } catch (e: any) {
     console.error('❌ Error drawing shield:', e?.message || e);
   }
 
-  const buffer = canvas.toBuffer('image/png');
+  const buffer = await canvas.toBuffer('png');
   console.log('✅ Certificate complete - Buffer size:', buffer.length, 'bytes');
   console.log('📋 FINAL VERIFICATION:');
   console.log('   Student name:', studentName, '(length:', studentName.length, ')');
   console.log('   Course name:', courseName, '(length:', courseName.length, ')');
-  console.log('   Font used:', baseFont || 'default');
   
   return buffer;
 }
