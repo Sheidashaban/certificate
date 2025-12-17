@@ -8,6 +8,14 @@ export interface CertificateData {
 }
 
 export async function generateCertificate(data: CertificateData): Promise<Buffer> {
+  console.log('🎨 Starting certificate generation');
+  console.log('📋 Data:', { 
+    studentName: data.studentName, 
+    courseName: data.courseName,
+    studentNameLength: data.studentName?.length || 0,
+    courseNameLength: data.courseName?.length || 0
+  });
+  
   const width = 1200;
   const height = 800;
   const canvas = createCanvas(width, height);
@@ -45,47 +53,101 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   ctx.strokeStyle = '#2C3E50';
   ctx.lineWidth = 2;
   
-  // Top-left corner
   drawCornerDecoration(ctx, 50, 50, cornerSize, 'top-left');
-  // Top-right corner
   drawCornerDecoration(ctx, width - 50, 50, cornerSize, 'top-right');
-  // Bottom-left corner
   drawCornerDecoration(ctx, 50, height - 50, cornerSize, 'bottom-left');
-  // Bottom-right corner
   drawCornerDecoration(ctx, width - 50, height - 50, cornerSize, 'bottom-right');
 
-  // Main Title
+  // Main Title - USE SIMPLE FONTS THAT WORK IN SERVERLESS
   ctx.fillStyle = '#2C3E50';
-  ctx.font = 'bold 56px "Times New Roman", serif';
+  ctx.font = 'bold 56px serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('CERTIFICATE', width / 2, 150);
+  console.log('🎨 Drawing CERTIFICATE title');
+  try {
+    ctx.fillText('CERTIFICATE', width / 2, 150);
+    console.log('✅ CERTIFICATE drawn');
+  } catch (e) {
+    console.error('❌ Error drawing CERTIFICATE:', e);
+  }
   
-  ctx.font = 'bold 48px "Times New Roman", serif';
-  ctx.fillText('OF COMPLETION', width / 2, 210);
+  ctx.font = 'bold 48px serif';
+  try {
+    ctx.fillText('OF COMPLETION', width / 2, 210);
+    console.log('✅ OF COMPLETION drawn');
+  } catch (e) {
+    console.error('❌ Error drawing OF COMPLETION:', e);
+  }
 
-  // Student name section
+  // Student name section - CRITICAL - USE SIMPLE FONTS
   ctx.fillStyle = '#34495E';
-  ctx.font = 'normal 24px Arial, sans-serif';
-  ctx.fillText('COMPLETED THE', width / 2, 280);
+  ctx.font = 'normal 24px sans-serif';
+  try {
+    ctx.fillText('COMPLETED THE', width / 2, 280);
+    console.log('✅ COMPLETED THE drawn');
+  } catch (e) {
+    console.error('❌ Error:', e);
+  }
 
   ctx.fillStyle = '#2C3E50';
-  ctx.font = 'bold 42px "Times New Roman", serif';
-  ctx.fillText(data.studentName.toUpperCase(), width / 2, 330);
+  ctx.font = 'bold 42px serif';
+  const studentName = data.studentName ? data.studentName.toUpperCase() : 'STUDENT NAME';
+  console.log('🎨 CRITICAL - Drawing student name:', studentName, 'at', width / 2, 330);
+  try {
+    // Draw multiple times to ensure it appears
+    ctx.fillText(studentName, width / 2, 330);
+    ctx.fillText(studentName, width / 2 + 1, 330 + 1); // Slight offset for thickness
+    console.log('✅✅✅ Student name SUCCESSFULLY drawn:', studentName);
+  } catch (e: any) {
+    console.error('❌❌❌ CRITICAL ERROR drawing student name:', e?.message || e);
+    // Try fallback
+    try {
+      ctx.fillStyle = '#000000';
+      ctx.font = '42px serif';
+      ctx.fillText(studentName, width / 2, 330);
+      console.log('✅ Fallback: Student name drawn');
+    } catch (e2) {
+      console.error('❌ Even fallback failed:', e2);
+    }
+  }
 
-  // Course section
+  // Course section - CRITICAL
   ctx.fillStyle = '#34495E';
-  ctx.font = 'normal 24px Arial, sans-serif';
-  ctx.fillText('ATTENDED THE', width / 2, 390);
+  ctx.font = 'normal 24px sans-serif';
+  try {
+    ctx.fillText('ATTENDED THE', width / 2, 390);
+  } catch (e) {
+    console.error('❌ Error:', e);
+  }
 
   ctx.fillStyle = '#2C3E50';
-  ctx.font = 'bold 36px "Times New Roman", serif';
-  ctx.fillText(data.courseName.toUpperCase(), width / 2, 440);
+  ctx.font = 'bold 36px serif';
+  const courseName = data.courseName ? data.courseName.toUpperCase() : 'COURSE NAME';
+  console.log('🎨 CRITICAL - Drawing course name:', courseName, 'at', width / 2, 440);
+  try {
+    ctx.fillText(courseName, width / 2, 440);
+    ctx.fillText(courseName, width / 2 + 1, 440 + 1); // Slight offset
+    console.log('✅✅✅ Course name SUCCESSFULLY drawn:', courseName);
+  } catch (e: any) {
+    console.error('❌❌❌ CRITICAL ERROR drawing course name:', e?.message || e);
+    try {
+      ctx.fillStyle = '#000000';
+      ctx.font = '36px serif';
+      ctx.fillText(courseName, width / 2, 440);
+      console.log('✅ Fallback: Course name drawn');
+    } catch (e2) {
+      console.error('❌ Even fallback failed:', e2);
+    }
+  }
 
   // Year
   ctx.fillStyle = '#7F8C8D';
-  ctx.font = 'normal 20px Arial, sans-serif';
-  ctx.fillText(`Year: ${data.year}`, width / 2, 490);
+  ctx.font = 'normal 20px sans-serif';
+  try {
+    ctx.fillText(`Year: ${data.year}`, width / 2, 490);
+  } catch (e) {
+    console.error('❌ Error:', e);
+  }
 
   // Decorative seal on top-left
   drawSeal(ctx, 150, 120, 80, 'CERTIFY', 'THE COMPLETION');
@@ -108,12 +170,16 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   ctx.stroke();
   
   ctx.fillStyle = '#7F8C8D';
-  ctx.font = 'normal 14px Arial, sans-serif';
+  ctx.font = 'normal 14px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('SIGNATURE', leftSignatureX, signatureY + 20);
-  ctx.fillText('Dr Amir Charkhi', leftSignatureX, signatureY - 15);
-  ctx.font = 'normal 12px Arial, sans-serif';
-  ctx.fillText('Executive Director', leftSignatureX, signatureY - 30);
+  try {
+    ctx.fillText('SIGNATURE', leftSignatureX, signatureY + 20);
+    ctx.fillText('Dr Amir Charkhi', leftSignatureX, signatureY - 15);
+    ctx.font = 'normal 12px sans-serif';
+    ctx.fillText('Executive Director', leftSignatureX, signatureY - 30);
+  } catch (e) {
+    console.error('❌ Error drawing signature:', e);
+  }
 
   // Right signature
   ctx.beginPath();
@@ -121,9 +187,14 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   ctx.lineTo(rightSignatureX + 100, signatureY);
   ctx.stroke();
   
-  ctx.fillText('SIGNATURE', rightSignatureX, signatureY + 20);
-  ctx.fillText('AI TECH INSTITUTE', rightSignatureX, signatureY - 15);
+  try {
+    ctx.fillText('SIGNATURE', rightSignatureX, signatureY + 20);
+    ctx.fillText('AI TECH INSTITUTE', rightSignatureX, signatureY - 15);
+  } catch (e) {
+    console.error('❌ Error:', e);
+  }
 
+  console.log('✅ Certificate generation complete');
   return canvas.toBuffer('image/png');
 }
 
@@ -143,7 +214,6 @@ function drawCornerDecoration(
     ctx.scale(-1, -1);
   }
   
-  // Draw decorative corner pattern
   ctx.beginPath();
   ctx.moveTo(0, 0);
   ctx.lineTo(size, 0);
@@ -181,7 +251,7 @@ function drawSeal(
   ctx.arc(0, 0, radius - 5, 0, Math.PI * 2);
   ctx.stroke();
 
-  // Serrated edge effect
+  // Serrated edge
   ctx.strokeStyle = '#7F8C8D';
   ctx.lineWidth = 1;
   const serrations = 24;
@@ -190,18 +260,12 @@ function drawSeal(
     const outerRadius = radius + 3;
     const innerRadius = radius - 2;
     ctx.beginPath();
-    ctx.moveTo(
-      Math.cos(angle) * outerRadius,
-      Math.sin(angle) * outerRadius
-    );
-    ctx.lineTo(
-      Math.cos(angle) * innerRadius,
-      Math.sin(angle) * innerRadius
-    );
+    ctx.moveTo(Math.cos(angle) * outerRadius, Math.sin(angle) * outerRadius);
+    ctx.lineTo(Math.cos(angle) * innerRadius, Math.sin(angle) * innerRadius);
     ctx.stroke();
   }
 
-  // Crown decoration on top
+  // Crown
   ctx.fillStyle = '#95A5A6';
   ctx.beginPath();
   ctx.moveTo(-8, -radius - 5);
@@ -212,15 +276,18 @@ function drawSeal(
   ctx.closePath();
   ctx.fill();
 
-  // Text
+  // Text - USE GENERIC FONTS
   ctx.fillStyle = '#2C3E50';
-  ctx.font = 'bold 14px Arial, sans-serif';
+  ctx.font = 'bold 14px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(text1, 0, -8);
-  
-  ctx.font = 'bold 12px Arial, sans-serif';
-  ctx.fillText(text2, 0, 8);
+  try {
+    ctx.fillText(text1, 0, -8);
+    ctx.font = 'bold 12px sans-serif';
+    ctx.fillText(text2, 0, 8);
+  } catch (e) {
+    console.error('❌ Error drawing seal text:', e);
+  }
 
   // Stars
   ctx.fillStyle = '#F39C12';
