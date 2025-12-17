@@ -1,4 +1,4 @@
-import { Canvas, FontLibrary } from 'skia-canvas';
+import { createCanvas, SKRSContext2D } from '@napi-rs/canvas';
 
 export interface CertificateData {
   studentName: string;
@@ -8,287 +8,262 @@ export interface CertificateData {
 }
 
 export async function generateCertificate(data: CertificateData): Promise<Buffer> {
-  console.log('🎨 Starting certificate generation with skia-canvas');
-  console.log('📋 Data received:', JSON.stringify(data, null, 2));
-  
-  // Validate data
-  if (!data || !data.studentName || !data.courseName) {
-    console.error('❌ Missing required data:', data);
-    throw new Error(`Student name and course name are required. Received: ${JSON.stringify(data)}`);
-  }
-  
   const width = 1200;
   const height = 800;
-  const canvas = new Canvas(width, height);
+  const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d');
-  
-  console.log('✅ Canvas created:', width, 'x', height);
 
-  // WHITE BACKGROUND
+  // Background - white with subtle pattern
   ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, width, height);
-  console.log('✅ White background drawn');
 
-  // Thin black border
-  ctx.strokeStyle = '#000000';
-  ctx.lineWidth = 2;
+  // Add subtle background pattern (guilloche-like effect)
+  ctx.strokeStyle = '#E8F4F8';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < width; i += 20) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.quadraticCurveTo(i + 10, height / 2, i, height);
+    ctx.stroke();
+  }
+
+  // Border - decorative multi-layer border
+  ctx.strokeStyle = '#2C3E50';
+  ctx.lineWidth = 3;
   ctx.strokeRect(20, 20, width - 40, height - 40);
 
-  // Subtle geometric pattern
-  ctx.fillStyle = '#E8E8E8';
-  ctx.globalAlpha = 0.2;
-  const patternSize = 50;
-  for (let y = 0; y < height; y += patternSize) {
-    for (let x = 0; x < width; x += patternSize) {
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(x + patternSize, y);
-      ctx.lineTo(x + patternSize / 2, y + patternSize);
-      ctx.closePath();
-      ctx.fill();
-    }
-  }
-  ctx.globalAlpha = 1.0;
+  ctx.strokeStyle = '#34495E';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(30, 30, width - 60, height - 60);
 
-  // Top Left - Circular Badge
-  const badgeX = 100;
-  const badgeY = 100;
-  const badgeRadius = 70;
+  ctx.strokeStyle = '#7F8C8D';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(40, 40, width - 80, height - 80);
+
+  // Corner decorations
+  const cornerSize = 50;
+  ctx.strokeStyle = '#2C3E50';
+  ctx.lineWidth = 2;
   
-  ctx.fillStyle = '#FFD700';
-  ctx.beginPath();
-  ctx.arc(badgeX, badgeY, badgeRadius, 0, Math.PI * 2);
-  ctx.fill();
-  
-  ctx.fillStyle = '#003366';
-  ctx.beginPath();
-  ctx.arc(badgeX, badgeY, badgeRadius * 0.75, 0, Math.PI * 2);
-  ctx.fill();
-  
-  // Badge text
-  ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 16px sans-serif';
+  // Top-left corner
+  drawCornerDecoration(ctx, 50, 50, cornerSize, 'top-left');
+  // Top-right corner
+  drawCornerDecoration(ctx, width - 50, 50, cornerSize, 'top-right');
+  // Bottom-left corner
+  drawCornerDecoration(ctx, 50, height - 50, cornerSize, 'bottom-left');
+  // Bottom-right corner
+  drawCornerDecoration(ctx, width - 50, height - 50, cornerSize, 'bottom-right');
+
+  // Main Title
+  ctx.fillStyle = '#2C3E50';
+  ctx.font = 'bold 56px "Times New Roman", serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  try {
-    ctx.fillText('AI TECH', badgeX, badgeY - 10);
-    ctx.font = 'bold 14px sans-serif';
-    ctx.fillText('INSTITUTE', badgeX, badgeY + 10);
-    console.log('✅ Badge text drawn');
-  } catch (e: any) {
-    console.error('❌ Error drawing badge text:', e?.message || e);
-  }
+  ctx.fillText('CERTIFICATE', width / 2, 150);
+  
+  ctx.font = 'bold 48px "Times New Roman", serif';
+  ctx.fillText('OF COMPLETION', width / 2, 210);
 
-  // Top Right - Logo
-  const logoX = width - 250;
-  const logoY = 80;
-  ctx.fillStyle = '#000000';
-  ctx.font = 'bold 36px sans-serif';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-  try {
-    ctx.fillText('AI TECH', logoX, logoY);
-    ctx.fillStyle = '#666666';
-    ctx.font = '20px sans-serif';
-    ctx.fillText('INSTITUTE', logoX, logoY + 45);
-    console.log('✅ Logo text drawn');
-  } catch (e: any) {
-    console.error('❌ Error drawing logo:', e?.message || e);
-  }
+  // Student name section
+  ctx.fillStyle = '#34495E';
+  ctx.font = 'normal 24px Arial, sans-serif';
+  ctx.fillText('COMPLETED THE', width / 2, 280);
 
-  // Center - CERTIFICATE Title
-  ctx.fillStyle = '#000000';
-  ctx.font = 'bold 80px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic';
-  const titleX = width / 2;
-  const titleY = 200;
-  try {
-    ctx.fillText('CERTIFICATE', titleX, titleY);
-    console.log('✅ CERTIFICATE title drawn');
-  } catch (e: any) {
-    console.error('❌ Error drawing CERTIFICATE title:', e?.message || e);
-  }
+  ctx.fillStyle = '#2C3E50';
+  ctx.font = 'bold 42px "Times New Roman", serif';
+  ctx.fillText(data.studentName.toUpperCase(), width / 2, 330);
 
-  // Student Name - CRITICAL - LARGE BLUE TEXT
-  const studentNameX = 200;
-  const studentNameY = 320;
-  const studentName = String(data.studentName || '').trim();
-  
-  console.log('🎨 CRITICAL - Drawing student name:', {
-    name: studentName,
-    length: studentName.length,
-    x: studentNameX,
-    y: studentNameY
-  });
-  
-  if (!studentName) {
-    console.error('❌❌❌ Student name is EMPTY!');
-  } else {
-    console.log('✅ Student name is NOT empty:', studentName);
-  }
-  
-  ctx.fillStyle = '#0066CC';
-  ctx.font = 'bold 60px sans-serif';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
-  
-  try {
-    ctx.fillText(studentName, studentNameX, studentNameY);
-    console.log('✅✅✅ Student name SUCCESSFULLY drawn:', studentName);
-  } catch (e: any) {
-    console.error('❌❌❌ CRITICAL ERROR drawing student name:', e?.message || e);
-    console.error('❌ Error stack:', e?.stack);
-    // Fallback
-    try {
-      ctx.fillStyle = '#000000';
-      ctx.fillText(studentName || 'STUDENT NAME', studentNameX, studentNameY);
-      console.log('✅ Fallback: Student name drawn in black');
-    } catch (e2: any) {
-      console.error('❌❌❌ Even fallback failed:', e2?.message || e2);
-    }
-  }
+  // Course section
+  ctx.fillStyle = '#34495E';
+  ctx.font = 'normal 24px Arial, sans-serif';
+  ctx.fillText('ATTENDED THE', width / 2, 390);
 
-  // Descriptive Text
-  const descX = studentNameX;
-  const descY = 380;
-  ctx.fillStyle = '#666666';
-  ctx.font = '20px sans-serif';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
-  const description = 'Has been formally evaluated for experience, knowledge, and demonstrated competency at the technical level in Artificial Intelligence as per the industry prerequisites established by AI Tech Institute, and is hereby bestowed the international credential.';
-  
-  const words = description.split(' ');
-  let line = '';
-  let currentY = descY;
-  const maxWidth = width - 400;
-  
-  try {
-    for (const word of words) {
-      const testLine = line + word + ' ';
-      const metrics = ctx.measureText(testLine);
-      if (metrics.width > maxWidth && line !== '') {
-        ctx.fillText(line, descX, currentY);
-        line = word + ' ';
-        currentY += 28;
-      } else {
-        line = testLine;
-      }
-    }
-    if (line) {
-      ctx.fillText(line, descX, currentY);
-    }
-    console.log('✅ Description drawn');
-  } catch (e: any) {
-    console.error('❌ Error drawing description:', e?.message || e);
-  }
+  ctx.fillStyle = '#2C3E50';
+  ctx.font = 'bold 36px "Times New Roman", serif';
+  ctx.fillText(data.courseName.toUpperCase(), width / 2, 440);
 
-  // Course Name - BLUE BOLD TEXT
-  const courseY = currentY + 50;
-  const courseName = String(data.courseName || '').trim().toUpperCase();
-  
-  console.log('🎨 CRITICAL - Drawing course name:', {
-    name: courseName,
-    length: courseName.length,
-    x: studentNameX,
-    y: courseY
-  });
-  
-  ctx.fillStyle = '#0066CC';
-  ctx.font = 'bold 36px sans-serif';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
-  
-  try {
-    ctx.fillText(courseName, studentNameX, courseY);
-    console.log('✅✅✅ Course name SUCCESSFULLY drawn:', courseName);
-  } catch (e: any) {
-    console.error('❌❌❌ CRITICAL ERROR drawing course name:', e?.message || e);
-    ctx.fillStyle = '#000000';
-    ctx.fillText(courseName || 'COURSE NAME', studentNameX, courseY);
-  }
+  // Year
+  ctx.fillStyle = '#7F8C8D';
+  ctx.font = 'normal 20px Arial, sans-serif';
+  ctx.fillText(`Year: ${data.year}`, width / 2, 490);
 
-  // Bottom Section
-  const bottomY = height - 100;
+  // Decorative seal on top-left
+  drawSeal(ctx, 150, 120, 80, 'CERTIFY', 'THE COMPLETION');
 
-  // Certificate Details
-  ctx.fillStyle = '#666666';
-  ctx.font = '16px sans-serif';
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'alphabetic';
-  const detailsX = 100;
-  const certNumber = `${data.year}${Math.floor(Math.random() * 1000000)}`;
-  const grantDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  const expirationDate = new Date(data.year + 3, 0, 1).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-  
-  try {
-    ctx.fillText(`Certificate Number: ${certNumber}`, detailsX, bottomY);
-    ctx.fillText(`Grant Date: ${grantDate}`, detailsX, bottomY + 25);
-    ctx.fillText(`Expiration Date: ${expirationDate}`, detailsX, bottomY + 50);
-    console.log('✅ Certificate details drawn');
-  } catch (e: any) {
-    console.error('❌ Error drawing details:', e?.message || e);
-  }
+  // Company seal on bottom-center
+  drawSeal(ctx, width / 2, height - 150, 70, 'AI TECH', 'INSTITUTE');
 
-  // Signature Block
-  const signatureX = width / 2;
-  ctx.strokeStyle = '#000000';
+  // Signature lines
+  const signatureY = height - 80;
+  const leftSignatureX = 200;
+  const rightSignatureX = width - 200;
+
+  ctx.strokeStyle = '#2C3E50';
   ctx.lineWidth = 1;
+  
+  // Left signature
   ctx.beginPath();
-  ctx.moveTo(signatureX - 120, bottomY + 30);
-  ctx.lineTo(signatureX + 120, bottomY + 30);
+  ctx.moveTo(leftSignatureX - 100, signatureY);
+  ctx.lineTo(leftSignatureX + 100, signatureY);
+  ctx.stroke();
+  
+  ctx.fillStyle = '#7F8C8D';
+  ctx.font = 'normal 14px Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('SIGNATURE', leftSignatureX, signatureY + 20);
+  ctx.fillText('Dr Amir Charkhi', leftSignatureX, signatureY - 15);
+  ctx.font = 'normal 12px Arial, sans-serif';
+  ctx.fillText('Executive Director', leftSignatureX, signatureY - 30);
+
+  // Right signature
+  ctx.beginPath();
+  ctx.moveTo(rightSignatureX - 100, signatureY);
+  ctx.lineTo(rightSignatureX + 100, signatureY);
+  ctx.stroke();
+  
+  ctx.fillText('SIGNATURE', rightSignatureX, signatureY + 20);
+  ctx.fillText('AI TECH INSTITUTE', rightSignatureX, signatureY - 15);
+
+  return canvas.toBuffer('image/png');
+}
+
+function drawCornerDecoration(
+  ctx: SKRSContext2D,
+  x: number,
+  y: number,
+  size: number,
+  position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
+) {
+  ctx.save();
+  ctx.translate(x, y);
+  
+  if (position === 'top-right' || position === 'bottom-left') {
+    ctx.scale(-1, position === 'bottom-left' ? -1 : 1);
+  } else if (position === 'bottom-right') {
+    ctx.scale(-1, -1);
+  }
+  
+  // Draw decorative corner pattern
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(size, 0);
+  ctx.lineTo(size * 0.7, size * 0.3);
+  ctx.lineTo(size * 0.3, size * 0.7);
+  ctx.lineTo(0, size);
+  ctx.closePath();
+  ctx.stroke();
+  
+  ctx.restore();
+}
+
+function drawSeal(
+  ctx: SKRSContext2D,
+  x: number,
+  y: number,
+  radius: number,
+  text1: string,
+  text2: string
+) {
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Outer circle
+  ctx.strokeStyle = '#95A5A6';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.arc(0, 0, radius, 0, Math.PI * 2);
   ctx.stroke();
 
-  ctx.fillStyle = '#666666';
-  ctx.font = '20px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic';
-  
-  try {
-    ctx.fillText('Dr Amir Charkhi', signatureX, bottomY);
-    ctx.font = '18px sans-serif';
-    ctx.fillText('Executive Director', signatureX, bottomY + 45);
-    console.log('✅ Signature drawn');
-  } catch (e: any) {
-    console.error('❌ Error drawing signature:', e?.message || e);
+  // Inner circle
+  ctx.strokeStyle = '#BDC3C7';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, 0, radius - 5, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Serrated edge effect
+  ctx.strokeStyle = '#7F8C8D';
+  ctx.lineWidth = 1;
+  const serrations = 24;
+  for (let i = 0; i < serrations; i++) {
+    const angle = (i / serrations) * Math.PI * 2;
+    const outerRadius = radius + 3;
+    const innerRadius = radius - 2;
+    ctx.beginPath();
+    ctx.moveTo(
+      Math.cos(angle) * outerRadius,
+      Math.sin(angle) * outerRadius
+    );
+    ctx.lineTo(
+      Math.cos(angle) * innerRadius,
+      Math.sin(angle) * innerRadius
+    );
+    ctx.stroke();
   }
 
-  // Bottom Right - Shield Badge
-  const shieldX = width - 180;
-  const shieldY = bottomY - 30;
-  const shieldHeight = 120;
-  const shieldWidth = shieldHeight * 0.75;
-  
-  ctx.fillStyle = '#003366';
+  // Crown decoration on top
+  ctx.fillStyle = '#95A5A6';
   ctx.beginPath();
-  ctx.moveTo(shieldX, shieldY + shieldHeight * 0.2);
-  ctx.lineTo(shieldX + shieldWidth / 2, shieldY);
-  ctx.lineTo(shieldX + shieldWidth, shieldY + shieldHeight * 0.2);
-  ctx.lineTo(shieldX + shieldWidth, shieldY + shieldHeight * 0.8);
-  ctx.lineTo(shieldX + shieldWidth / 2, shieldY + shieldHeight);
-  ctx.lineTo(shieldX, shieldY + shieldHeight * 0.8);
+  ctx.moveTo(-8, -radius - 5);
+  ctx.lineTo(0, -radius - 15);
+  ctx.lineTo(8, -radius - 5);
+  ctx.lineTo(6, -radius - 3);
+  ctx.lineTo(-6, -radius - 3);
   ctx.closePath();
   ctx.fill();
 
-  ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 18px sans-serif';
+  // Text
+  ctx.fillStyle = '#2C3E50';
+  ctx.font = 'bold 14px Arial, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
+  ctx.fillText(text1, 0, -8);
   
-  try {
-    ctx.fillText('AI TECH', shieldX + shieldWidth / 2, shieldY + shieldHeight * 0.4);
-    ctx.font = 'bold 14px sans-serif';
-    ctx.fillText('INSTITUTE', shieldX + shieldWidth / 2, shieldY + shieldHeight * 0.65);
-    console.log('✅ Shield badge drawn');
-  } catch (e: any) {
-    console.error('❌ Error drawing shield:', e?.message || e);
+  ctx.font = 'bold 12px Arial, sans-serif';
+  ctx.fillText(text2, 0, 8);
+
+  // Stars
+  ctx.fillStyle = '#F39C12';
+  for (let i = 0; i < 5; i++) {
+    const angle = (i / 5) * Math.PI * 2;
+    const starRadius = radius - 20;
+    const starX = Math.cos(angle) * starRadius;
+    const starY = Math.sin(angle) * starRadius;
+    drawStar(ctx, starX, starY, 3);
   }
 
-  const buffer = await canvas.toBuffer('png');
-  console.log('✅ Certificate complete - Buffer size:', buffer.length, 'bytes');
-  console.log('📋 FINAL VERIFICATION:');
-  console.log('   Student name:', studentName, '(length:', studentName.length, ')');
-  console.log('   Course name:', courseName, '(length:', courseName.length, ')');
+  // Ribbons
+  ctx.fillStyle = '#BDC3C7';
+  ctx.beginPath();
+  ctx.ellipse(0, radius + 10, 15, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
   
-  return buffer;
+  ctx.beginPath();
+  ctx.ellipse(-8, radius + 18, 8, 4, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+  
+  ctx.beginPath();
+  ctx.ellipse(8, radius + 18, 8, 4, 0.3, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawStar(ctx: SKRSContext2D, x: number, y: number, size: number) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const angle = (i * 4 * Math.PI) / 5 - Math.PI / 2;
+    const px = Math.cos(angle) * size;
+    const py = Math.sin(angle) * size;
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
 }
