@@ -1,4 +1,4 @@
-import { createCanvas, SKRSContext2D } from '@napi-rs/canvas';
+import { createCanvas } from '@napi-rs/canvas';
 
 export interface CertificateData {
   studentName: string;
@@ -8,285 +8,193 @@ export interface CertificateData {
 }
 
 export async function generateCertificate(data: CertificateData): Promise<Buffer> {
-  console.log('🎨 Starting certificate generation with data:', {
-    studentName: data.studentName,
-    courseName: data.courseName,
-    instructorName: data.instructorName,
-    year: data.year,
-  });
+  console.log('🎨 Starting certificate generation with data:', JSON.stringify(data));
   
   const width = 1200;
   const height = 800;
   const canvas = createCanvas(width, height);
   const ctx = canvas.getContext('2d');
   
-  console.log('✅ Canvas created, size:', width, 'x', height);
+  console.log('✅ Canvas created');
 
-  // AI Tech Institute Brand Colors
-  const YELLOW = '#FFD700'; // Bright yellow
-  const BLACK = '#000000';  // Black
-  const DARK_YELLOW = '#FFC107'; // Slightly darker yellow for accents
-  const LIGHT_YELLOW = '#FFF9C4'; // Light yellow for background
-
-  // Background - Yellow gradient effect
-  const gradient = ctx.createLinearGradient(0, 0, 0, height);
-  gradient.addColorStop(0, YELLOW);
-  gradient.addColorStop(0.5, LIGHT_YELLOW);
-  gradient.addColorStop(1, YELLOW);
-  ctx.fillStyle = gradient;
+  // WHITE BACKGROUND - NOT YELLOW
+  ctx.fillStyle = '#FFFFFF';
   ctx.fillRect(0, 0, width, height);
 
-  // Border - Bold black border
-  ctx.strokeStyle = BLACK;
-  ctx.lineWidth = 8;
-  ctx.strokeRect(30, 30, width - 60, height - 60);
-
-  // Inner border - Yellow accent
-  ctx.strokeStyle = DARK_YELLOW;
-  ctx.lineWidth = 4;
-  ctx.strokeRect(50, 50, width - 100, height - 100);
-
-  // Corner decorations - Black geometric shapes
-  const cornerSize = 60;
-  ctx.fillStyle = BLACK;
-  ctx.strokeStyle = BLACK;
-  ctx.lineWidth = 3;
-  
-  // Top-left corner
-  drawCornerDecoration(ctx, 80, 80, cornerSize, 'top-left');
-  // Top-right corner
-  drawCornerDecoration(ctx, width - 80, 80, cornerSize, 'top-right');
-  // Bottom-left corner
-  drawCornerDecoration(ctx, 80, height - 80, cornerSize, 'bottom-left');
-  // Bottom-right corner
-  drawCornerDecoration(ctx, width - 80, height - 80, cornerSize, 'bottom-right');
-
-  // Main Title - AI Tech Institute Style
-  // Set text properties BEFORE drawing
-  ctx.fillStyle = BLACK;
-  ctx.strokeStyle = BLACK;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'alphabetic'; // Changed from 'top' to 'alphabetic'
-  
-  const titleY = 120;
-  
-  // Draw CERTIFICATE with stroke for visibility
-  ctx.font = 'bold 64px sans-serif';
+  // Thin black border
+  ctx.strokeStyle = '#000000';
   ctx.lineWidth = 2;
-  try {
-    // Draw with both fill and stroke to ensure visibility
-    ctx.strokeText('CERTIFICATE', width / 2, titleY);
-    ctx.fillText('CERTIFICATE', width / 2, titleY);
-    console.log('✅ Drew CERTIFICATE text at', width / 2, titleY);
-  } catch (e) {
-    console.error('❌ Error drawing CERTIFICATE:', e);
+  ctx.strokeRect(20, 20, width - 40, height - 40);
+
+  // Draw geometric pattern (subtle triangles)
+  ctx.fillStyle = '#E8E8E8';
+  ctx.globalAlpha = 0.3;
+  for (let y = 0; y < height; y += 60) {
+    for (let x = 0; x < width; x += 60) {
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + 40, y);
+      ctx.lineTo(x + 20, y + 40);
+      ctx.closePath();
+      ctx.fill();
+    }
   }
-  
-  ctx.font = 'bold 52px sans-serif';
-  try {
-    ctx.strokeText('OF COMPLETION', width / 2, titleY + 70);
-    ctx.fillText('OF COMPLETION', width / 2, titleY + 70);
-    console.log('✅ Drew OF COMPLETION text at', width / 2, titleY + 70);
-  } catch (e) {
-    console.error('❌ Error drawing OF COMPLETION:', e);
-  }
+  ctx.globalAlpha = 1.0;
 
-  // Decorative line under title
-  ctx.strokeStyle = BLACK;
-  ctx.lineWidth = 3;
-  ctx.beginPath();
-  ctx.moveTo(width / 2 - 200, titleY + 130);
-  ctx.lineTo(width / 2 + 200, titleY + 130);
-  ctx.stroke();
-
-  // Student name section
-  ctx.fillStyle = BLACK;
-  ctx.strokeStyle = BLACK;
-  ctx.textBaseline = 'alphabetic';
-  
-  ctx.font = 'normal 28px sans-serif';
-  ctx.lineWidth = 1;
-  try {
-    ctx.strokeText('THIS IS TO CERTIFY THAT', width / 2, 280);
-    ctx.fillText('THIS IS TO CERTIFY THAT', width / 2, 280);
-    console.log('✅ Drew THIS IS TO CERTIFY THAT at', width / 2, 280);
-  } catch (e) {
-    console.error('❌ Error drawing THIS IS TO CERTIFY THAT:', e);
-  }
-
-  ctx.font = 'bold 48px sans-serif';
-  ctx.lineWidth = 2;
-  const studentNameText = data.studentName ? data.studentName.toUpperCase() : 'STUDENT NAME';
-  console.log('🎨 Drawing student name:', studentNameText, 'at', width / 2, 330);
-  try {
-    ctx.strokeText(studentNameText, width / 2, 330);
-    ctx.fillText(studentNameText, width / 2, 330);
-    console.log('✅ Drew student name:', studentNameText);
-  } catch (e) {
-    const errorMessage = e instanceof Error ? e.message : String(e);
-    console.error('❌ Error drawing student name:', errorMessage);
-  }
-
-  // Course section
-  ctx.font = 'normal 28px sans-serif';
-  ctx.lineWidth = 1;
-  try {
-    ctx.strokeText('HAS SUCCESSFULLY COMPLETED', width / 2, 400);
-    ctx.fillText('HAS SUCCESSFULLY COMPLETED', width / 2, 400);
-    console.log('✅ Drew HAS SUCCESSFULLY COMPLETED at', width / 2, 400);
-  } catch (e) {
-    console.error('❌ Error drawing HAS SUCCESSFULLY COMPLETED:', e);
-  }
-
-  ctx.font = 'bold 40px sans-serif';
-  ctx.lineWidth = 2;
-  const courseNameText = data.courseName ? data.courseName.toUpperCase() : 'COURSE NAME';
-  console.log('🎨 Drawing course name:', courseNameText, 'at', width / 2, 450);
-  try {
-    ctx.strokeText(courseNameText, width / 2, 450);
-    ctx.fillText(courseNameText, width / 2, 450);
-    console.log('✅ Drew course name:', courseNameText);
-  } catch (e) {
-    const errorMessage = e instanceof Error ? e.message : String(e);
-    console.error('❌ Error drawing course name:', errorMessage);
-  }
-
-  // Year
-  ctx.font = 'normal 24px sans-serif';
-  ctx.lineWidth = 1;
-  const yearText = `Year: ${data.year}`;
-  console.log('🎨 Drawing year:', yearText, 'at', width / 2, 510);
-  try {
-    ctx.strokeText(yearText, width / 2, 510);
-    ctx.fillText(yearText, width / 2, 510);
-    console.log('✅ Drew year:', yearText);
-  } catch (e) {
-    const errorMessage = e instanceof Error ? e.message : String(e);
-    console.error('❌ Error drawing year:', errorMessage);
-  }
-
-  // AI Tech Institute Logo Area (top center)
-  drawAITechLogo(ctx, width / 2, 60, 100);
-
-  // Signature lines
-  const signatureY = height - 100;
-  const leftSignatureX = 250;
-  const rightSignatureX = width - 250;
-
-  ctx.strokeStyle = BLACK;
-  ctx.lineWidth = 2;
-  
-  // Left signature
-  ctx.beginPath();
-  ctx.moveTo(leftSignatureX - 120, signatureY);
-  ctx.lineTo(leftSignatureX + 120, signatureY);
-  ctx.stroke();
-  
-  ctx.fillStyle = BLACK;
-  ctx.font = 'normal 16px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'top';
-  try {
-    ctx.fillText('SIGNATURE', leftSignatureX, signatureY + 10);
-    ctx.fillText(data.instructorName || 'Instructor', leftSignatureX, signatureY - 25);
-    console.log('✅ Drew left signature');
-  } catch (e) {
-    console.error('❌ Error drawing left signature:', e);
-  }
-
-  // Right signature
-  ctx.beginPath();
-  ctx.moveTo(rightSignatureX - 120, signatureY);
-  ctx.lineTo(rightSignatureX + 120, signatureY);
-  ctx.stroke();
-  
-  try {
-    ctx.fillText('SIGNATURE', rightSignatureX, signatureY + 10);
-    ctx.fillText('AI TECH INSTITUTE', rightSignatureX, signatureY - 25);
-    console.log('✅ Drew right signature');
-  } catch (e) {
-    console.error('❌ Error drawing right signature:', e);
-  }
-
-  // Bottom decorative element
-  ctx.fillStyle = BLACK;
-  ctx.font = 'bold 20px sans-serif';
-  try {
-    ctx.fillText('AI TECH INSTITUTE', width / 2, height - 40);
-    console.log('✅ Drew bottom text');
-  } catch (e) {
-    console.error('❌ Error drawing bottom text:', e);
-  }
-
-  console.log('✅ Certificate generation complete');
-  return canvas.toBuffer('image/png');
-}
-
-function drawCornerDecoration(
-  ctx: SKRSContext2D,
-  x: number,
-  y: number,
-  size: number,
-  position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right'
-) {
-  ctx.save();
-  ctx.translate(x, y);
-  
-  if (position === 'top-right' || position === 'bottom-left') {
-    ctx.scale(-1, position === 'bottom-left' ? -1 : 1);
-  } else if (position === 'bottom-right') {
-    ctx.scale(-1, -1);
-  }
-  
-  // Draw geometric corner pattern
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.lineTo(size, 0);
-  ctx.lineTo(size * 0.6, size * 0.4);
-  ctx.lineTo(size * 0.4, size * 0.6);
-  ctx.lineTo(0, size);
-  ctx.closePath();
-  ctx.stroke();
-  
-  ctx.restore();
-}
-
-function drawAITechLogo(
-  ctx: SKRSContext2D,
-  x: number,
-  y: number,
-  size: number
-) {
-  ctx.save();
-  ctx.translate(x, y);
-
-  // Black circle background
-  ctx.fillStyle = '#000000';
-  ctx.beginPath();
-  ctx.arc(0, 0, size / 2, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Yellow "AI" text
+  // Top Left - Circular Badge
+  const badgeX = 100;
+  const badgeY = 100;
+  const badgeRadius = 80;
   ctx.fillStyle = '#FFD700';
-  ctx.font = `bold ${size / 3}px sans-serif`;
+  ctx.beginPath();
+  ctx.arc(badgeX, badgeY, badgeRadius, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#003366';
+  ctx.beginPath();
+  ctx.arc(badgeX, badgeY, badgeRadius * 0.7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 14px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  try {
-    ctx.fillText('AI', 0, -size / 8);
-    console.log('✅ Drew AI logo text');
-  } catch (e) {
-    console.error('❌ Error drawing AI logo:', e);
-  }
+  ctx.fillText('AI TECH', badgeX, badgeY - 8);
+  ctx.font = 'bold 12px sans-serif';
+  ctx.fillText('INSTITUTE', badgeX, badgeY + 8);
 
-  // Yellow "INSTITUTE TECH" text below
-  ctx.font = `bold ${size / 5}px sans-serif`;
-  try {
-    ctx.fillText('INSTITUTE', 0, size / 6);
-    ctx.fillText('TECH', 0, size / 3);
-    console.log('✅ Drew INSTITUTE TECH text');
-  } catch (e) {
-    console.error('❌ Error drawing INSTITUTE TECH:', e);
-  }
+  // Top Right - AI Tech Institute Logo
+  const logoX = width - 200;
+  const logoY = 100;
+  ctx.fillStyle = '#000000';
+  ctx.font = 'bold 32px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText('AI TECH', logoX, logoY);
+  ctx.fillStyle = '#666666';
+  ctx.font = '18px sans-serif';
+  ctx.fillText('INSTITUTE', logoX, logoY + 40);
 
-  ctx.restore();
+  // Center - CERTIFICATE Title
+  ctx.fillStyle = '#000000';
+  ctx.font = 'bold 72px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('CERTIFICATE', width / 2, 180);
+  console.log('✅ Drew CERTIFICATE title');
+
+  // Student Name - LARGE BLUE TEXT
+  const studentNameX = 150;
+  const studentNameY = 280;
+  ctx.fillStyle = '#0066CC';
+  ctx.font = 'bold 56px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  const studentName = data.studentName || 'STUDENT NAME';
+  console.log('🎨 Drawing student name:', studentName);
+  ctx.fillText(studentName, studentNameX, studentNameY);
+  console.log('✅ Drew student name');
+
+  // Descriptive Text
+  const descX = studentNameX;
+  const descY = 330;
+  ctx.fillStyle = '#666666';
+  ctx.font = '18px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  const description = 'Has been formally evaluated for experience, knowledge, and demonstrated competency at the technical level in Artificial Intelligence as per the industry prerequisites established by AI Tech Institute, and is hereby bestowed the international credential.';
+  
+  // Simple text wrapping
+  const words = description.split(' ');
+  let line = '';
+  let currentY = descY;
+  const maxWidth = width - 300;
+  
+  for (const word of words) {
+    const testLine = line + word + ' ';
+    const metrics = ctx.measureText(testLine);
+    if (metrics.width > maxWidth && line !== '') {
+      ctx.fillText(line, descX, currentY);
+      line = word + ' ';
+      currentY += 26;
+    } else {
+      line = testLine;
+    }
+  }
+  if (line) {
+    ctx.fillText(line, descX, currentY);
+  }
+  console.log('✅ Drew description');
+
+  // Course Name - BLUE BOLD TEXT
+  const courseY = currentY + 40;
+  ctx.fillStyle = '#0066CC';
+  ctx.font = 'bold 32px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  const courseName = data.courseName ? data.courseName.toUpperCase() : 'COURSE NAME';
+  console.log('🎨 Drawing course name:', courseName);
+  ctx.fillText(courseName, studentNameX, courseY);
+  console.log('✅ Drew course name');
+
+  // Bottom Section
+  const bottomY = height - 120;
+
+  // Bottom Left - Certificate Details
+  ctx.fillStyle = '#666666';
+  ctx.font = '16px sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'alphabetic';
+  const detailsX = 100;
+  const certNumber = `${data.year}${Math.floor(Math.random() * 1000000)}`;
+  const grantDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const expirationDate = new Date(data.year + 3, 0, 1).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  ctx.fillText(`Certificate Number: ${certNumber}`, detailsX, bottomY);
+  ctx.fillText(`Grant Date: ${grantDate}`, detailsX, bottomY + 25);
+  ctx.fillText(`Expiration Date: ${expirationDate}`, detailsX, bottomY + 50);
+  console.log('✅ Drew certificate details');
+
+  // Bottom Center - Signature
+  const signatureX = width / 2;
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(signatureX - 100, bottomY + 20);
+  ctx.lineTo(signatureX + 100, bottomY + 20);
+  ctx.stroke();
+
+  ctx.fillStyle = '#666666';
+  ctx.font = '18px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('Dr Amir Charkhi', signatureX, bottomY - 5);
+  ctx.font = '16px sans-serif';
+  ctx.fillText('Executive Director', signatureX, bottomY + 35);
+  console.log('✅ Drew signature');
+
+  // Bottom Right - Shield Badge
+  const shieldX = width - 150;
+  const shieldY = bottomY - 20;
+  const shieldHeight = 100;
+  const shieldWidth = shieldHeight * 0.7;
+  ctx.fillStyle = '#003366';
+  ctx.beginPath();
+  ctx.moveTo(shieldX, shieldY + shieldHeight * 0.2);
+  ctx.lineTo(shieldX + shieldWidth / 2, shieldY);
+  ctx.lineTo(shieldX + shieldWidth, shieldY + shieldHeight * 0.2);
+  ctx.lineTo(shieldX + shieldWidth, shieldY + shieldHeight * 0.8);
+  ctx.lineTo(shieldX + shieldWidth / 2, shieldY + shieldHeight);
+  ctx.lineTo(shieldX, shieldY + shieldHeight * 0.8);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 16px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('AI TECH', shieldX + shieldWidth / 2, shieldY + shieldHeight * 0.4);
+  ctx.font = 'bold 12px sans-serif';
+  ctx.fillText('INSTITUTE', shieldX + shieldWidth / 2, shieldY + shieldHeight * 0.6);
+  console.log('✅ Drew shield badge');
+
+  console.log('✅ Certificate generation complete - Buffer size:', canvas.toBuffer('image/png').length);
+  return canvas.toBuffer('image/png');
 }
