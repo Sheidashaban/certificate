@@ -7,12 +7,40 @@ export interface CertificateData {
   year: number;
 }
 
+// Get available font - use first available or fallback
+function getAvailableFont(): string {
+  const availableFonts = GlobalFonts.families;
+  console.log('🔤 Available fonts:', availableFonts.slice(0, 20));
+  
+  // Try common fonts in order of preference
+  const preferredFonts = ['Arial', 'DejaVu Sans', 'Liberation Sans', 'Helvetica', 'Verdana'];
+  
+  for (const font of preferredFonts) {
+    if (availableFonts.includes(font)) {
+      console.log('✅ Using font:', font);
+      return font;
+    }
+  }
+  
+  // Use first available font
+  if (availableFonts.length > 0) {
+    const firstFont = availableFonts[0];
+    console.log('✅ Using first available font:', firstFont);
+    return firstFont;
+  }
+  
+  // Last resort - return empty string (will use default)
+  console.warn('⚠️ No fonts available, using default');
+  return '';
+}
+
 export async function generateCertificate(data: CertificateData): Promise<Buffer> {
   console.log('🎨 Starting certificate generation');
   console.log('📋 Data received:', JSON.stringify(data, null, 2));
   
-  // Check available fonts
-  console.log('🔤 Available fonts:', GlobalFonts.families.slice(0, 10));
+  // Get available font
+  const fontName = getAvailableFont();
+  const baseFont = fontName ? `${fontName}` : '';
   
   // Validate data
   if (!data || !data.studentName || !data.courseName) {
@@ -26,6 +54,7 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   const ctx = canvas.getContext('2d');
   
   console.log('✅ Canvas created:', width, 'x', height);
+  console.log('🔤 Using font base:', baseFont);
 
   // WHITE BACKGROUND
   ctx.fillStyle = '#FFFFFF';
@@ -68,14 +97,14 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   ctx.arc(badgeX, badgeY, badgeRadius * 0.75, 0, Math.PI * 2);
   ctx.fill();
   
-  // Badge text - USE SPECIFIC FONT
+  // Badge text
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 16px Arial';
+  ctx.font = baseFont ? `bold 16px ${baseFont}` : 'bold 16px';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   try {
     ctx.fillText('AI TECH', badgeX, badgeY - 10);
-    ctx.font = 'bold 14px Arial';
+    ctx.font = baseFont ? `bold 14px ${baseFont}` : 'bold 14px';
     ctx.fillText('INSTITUTE', badgeX, badgeY + 10);
     console.log('✅ Badge text drawn');
   } catch (e: any) {
@@ -86,13 +115,13 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   const logoX = width - 250;
   const logoY = 80;
   ctx.fillStyle = '#000000';
-  ctx.font = 'bold 36px Arial';
+  ctx.font = baseFont ? `bold 36px ${baseFont}` : 'bold 36px';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'top';
   try {
     ctx.fillText('AI TECH', logoX, logoY);
     ctx.fillStyle = '#666666';
-    ctx.font = '20px Arial';
+    ctx.font = baseFont ? `20px ${baseFont}` : '20px';
     ctx.fillText('INSTITUTE', logoX, logoY + 45);
     console.log('✅ Logo text drawn');
   } catch (e: any) {
@@ -101,7 +130,7 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
 
   // Center - CERTIFICATE Title
   ctx.fillStyle = '#000000';
-  ctx.font = 'bold 80px Arial';
+  ctx.font = baseFont ? `bold 80px ${baseFont}` : 'bold 80px';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
   const titleX = width / 2;
@@ -113,43 +142,54 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
     console.error('❌ Error drawing CERTIFICATE title:', e?.message || e);
   }
 
-  // Student Name - LARGE BLUE TEXT - USE SPECIFIC FONT
+  // Student Name - CRITICAL - LARGE BLUE TEXT
   const studentNameX = 200;
   const studentNameY = 320;
   const studentName = String(data.studentName || '').trim();
   
-  console.log('🎨 Drawing student name:', {
+  console.log('🎨 CRITICAL - Drawing student name:', {
     name: studentName,
     length: studentName.length,
     x: studentNameX,
-    y: studentNameY
+    y: studentNameY,
+    font: baseFont ? `bold 60px ${baseFont}` : 'bold 60px'
   });
   
   if (!studentName) {
-    console.error('❌ Student name is empty!');
+    console.error('❌❌❌ Student name is EMPTY!');
+  } else {
+    console.log('✅ Student name is NOT empty:', studentName);
   }
   
   ctx.fillStyle = '#0066CC';
-  ctx.font = 'bold 60px Arial'; // USE Arial instead of sans-serif
+  ctx.font = baseFont ? `bold 60px ${baseFont}` : 'bold 60px';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   
   try {
+    // Draw multiple times to ensure visibility
     ctx.fillText(studentName, studentNameX, studentNameY);
-    console.log('✅ Student name drawn:', studentName);
+    ctx.fillText(studentName, studentNameX + 1, studentNameY + 1);
+    ctx.fillText(studentName, studentNameX - 1, studentNameY - 1);
+    console.log('✅✅✅ Student name SUCCESSFULLY drawn:', studentName);
   } catch (e: any) {
-    console.error('❌ Error drawing student name:', e?.message || e);
+    console.error('❌❌❌ CRITICAL ERROR drawing student name:', e?.message || e);
     console.error('❌ Error stack:', e?.stack);
-    // Fallback
-    ctx.fillStyle = '#000000';
-    ctx.fillText(studentName || 'STUDENT NAME', studentNameX, studentNameY);
+    // Try with black as fallback
+    try {
+      ctx.fillStyle = '#000000';
+      ctx.fillText(studentName || 'STUDENT NAME', studentNameX, studentNameY);
+      console.log('✅ Fallback: Student name drawn in black');
+    } catch (e2: any) {
+      console.error('❌❌❌ Even fallback failed:', e2?.message || e2);
+    }
   }
 
   // Descriptive Text
   const descX = studentNameX;
   const descY = 380;
   ctx.fillStyle = '#666666';
-  ctx.font = '20px Arial'; // USE Arial
+  ctx.font = baseFont ? `20px ${baseFont}` : '20px';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   const description = 'Has been formally evaluated for experience, knowledge, and demonstrated competency at the technical level in Artificial Intelligence as per the industry prerequisites established by AI Tech Institute, and is hereby bestowed the international credential.';
@@ -179,11 +219,11 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
     console.error('❌ Error drawing description:', e?.message || e);
   }
 
-  // Course Name - BLUE BOLD TEXT - USE SPECIFIC FONT
+  // Course Name - BLUE BOLD TEXT
   const courseY = currentY + 50;
   const courseName = String(data.courseName || '').trim().toUpperCase();
   
-  console.log('🎨 Drawing course name:', {
+  console.log('🎨 CRITICAL - Drawing course name:', {
     name: courseName,
     length: courseName.length,
     x: studentNameX,
@@ -191,15 +231,16 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   });
   
   ctx.fillStyle = '#0066CC';
-  ctx.font = 'bold 36px Arial'; // USE Arial
+  ctx.font = baseFont ? `bold 36px ${baseFont}` : 'bold 36px';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   
   try {
     ctx.fillText(courseName, studentNameX, courseY);
-    console.log('✅ Course name drawn:', courseName);
+    ctx.fillText(courseName, studentNameX + 1, courseY + 1);
+    console.log('✅✅✅ Course name SUCCESSFULLY drawn:', courseName);
   } catch (e: any) {
-    console.error('❌ Error drawing course name:', e?.message || e);
+    console.error('❌❌❌ CRITICAL ERROR drawing course name:', e?.message || e);
     ctx.fillStyle = '#000000';
     ctx.fillText(courseName || 'COURSE NAME', studentNameX, courseY);
   }
@@ -209,7 +250,7 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
 
   // Certificate Details
   ctx.fillStyle = '#666666';
-  ctx.font = '16px Arial'; // USE Arial
+  ctx.font = baseFont ? `16px ${baseFont}` : '16px';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'alphabetic';
   const detailsX = 100;
@@ -236,13 +277,13 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   ctx.stroke();
 
   ctx.fillStyle = '#666666';
-  ctx.font = '20px Arial'; // USE Arial
+  ctx.font = baseFont ? `20px ${baseFont}` : '20px';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
   
   try {
     ctx.fillText('Dr Amir Charkhi', signatureX, bottomY);
-    ctx.font = '18px Arial';
+    ctx.font = baseFont ? `18px ${baseFont}` : '18px';
     ctx.fillText('Executive Director', signatureX, bottomY + 45);
     console.log('✅ Signature drawn');
   } catch (e: any) {
@@ -267,13 +308,13 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
   ctx.fill();
 
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 18px Arial'; // USE Arial
+  ctx.font = baseFont ? `bold 18px ${baseFont}` : 'bold 18px';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   
   try {
     ctx.fillText('AI TECH', shieldX + shieldWidth / 2, shieldY + shieldHeight * 0.4);
-    ctx.font = 'bold 14px Arial';
+    ctx.font = baseFont ? `bold 14px ${baseFont}` : 'bold 14px';
     ctx.fillText('INSTITUTE', shieldX + shieldWidth / 2, shieldY + shieldHeight * 0.65);
     console.log('✅ Shield badge drawn');
   } catch (e: any) {
@@ -282,7 +323,10 @@ export async function generateCertificate(data: CertificateData): Promise<Buffer
 
   const buffer = canvas.toBuffer('image/png');
   console.log('✅ Certificate complete - Buffer size:', buffer.length, 'bytes');
-  console.log('📋 Final verification - Student name:', studentName, 'Course name:', courseName);
+  console.log('📋 FINAL VERIFICATION:');
+  console.log('   Student name:', studentName, '(length:', studentName.length, ')');
+  console.log('   Course name:', courseName, '(length:', courseName.length, ')');
+  console.log('   Font used:', baseFont || 'default');
   
   return buffer;
 }
