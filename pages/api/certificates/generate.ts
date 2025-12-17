@@ -7,9 +7,28 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+  // Handle CORS preflight
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'POST');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    return res.status(200).end();
   }
+
+  // Only allow POST
+  if (req.method !== 'POST') {
+    console.error('❌ Method not allowed:', req.method, 'Expected: POST');
+    return res.status(405).json({ 
+      error: 'Method not allowed',
+      received: req.method,
+      expected: 'POST'
+    });
+  }
+
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   try {
     const { studentName, courseName, instructorName, year, studentEmail } = req.body;
